@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario-Style Love Journey</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="startOverlay" class="overlay">
+        <p>Click to begin 💛</p>
+    </div>
+    <div id="revealOverlay" class="overlay hidden">
+        <img id="revealPhoto" src="" alt="Photo">
+        <p id="revealCaption"></p>
+        <button id="nextButton">Next</button>
+    </div>
+    <div id="cutsceneOverlay" class="overlay hidden">
+        <p id="cutsceneText"></p>
+        <button id="skipButton" class="skip">Skip</button>
+    </div>
+    <div id="chapterTitle" class="overlay hidden">
+        <p id="titleText"></p>
+    </div>
+    <div id="valentineScreen" class="overlay hidden">
+        <p>Will you be my Valentine? 💛</p>
+        <button class="yesButton">Yes</button>
+        <button class="yesButton">Yes</button>
+    </div>
+    <div id="endMessage" class="overlay hidden">
+        <p>YAYYYY!!! I love you ❤️</p>
+        <p>Thank you for doing this journey with me.</p>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
