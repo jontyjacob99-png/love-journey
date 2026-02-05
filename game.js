@@ -1,7 +1,6 @@
-// Mario-Style Love Journey Game
+// Mario-Style Love Journey Game (No Images Needed - Simple Canvas Drawing)
 // Instructions: Replace photo files and captions in the storyBlocks array below.
-// Ensure assets are in /sprites/, /photos/, /audio/ folders.
-// Photos: If they fail to load, a placeholder frame shows with the caption.
+// Photos: If they fail to load, a drawn placeholder shows with the caption.
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -14,6 +13,9 @@ const JUMP_FORCE = -12;
 const PLAYER_SPEED = 3;
 const CAMERA_SPEED = 2;
 const TILE_SIZE = 32;
+
+// Animation frame counter for simple animations
+let animationFrame = 0;
 
 // States
 const STATES = {
@@ -45,38 +47,14 @@ const storyBlocks = [
     { id: 12, x: 3000, photo: "photos/photo12.jpg", caption: "And I’d choose you—every level, every time.", chapter: "Long Distance" }
 ];
 
-// Entities
-let player = { x: 50, y: 300, vx: 0, vy: 0, width: 32, height: 32, sprite: 'girl_idle.png', onGround: false };
-let player2 = { x: 0, y: 300, width: 32, height: 32, sprite: 'boy_idle.png', visible: false };
-let car = { x: 0, y: 300, width: 64, height: 32, sprite: 'car_black.png', visible: false };
-let plane = { x: 0, y: 0, width: 128, height: 64, sprite: 'plane.png', visible: false, vx: 0, vy: 0 };
+// Entities (no images needed)
+let player = { x: 50, y: 300, vx: 0, vy: 0, width: 32, height: 32, color: '#FF69B4', onGround: false }; // Pink for girl
+let player2 = { x: 0, y: 300, width: 32, height: 32, color: '#4169E1', visible: false }; // Blue for boy
+let car = { x: 0, y: 300, width: 64, height: 32, visible: false };
+let plane = { x: 0, y: 0, width: 128, height: 64, visible: false, vx: 0, vy: 0 };
 let bricks = [];
-let flag = { x: 3200, y: 200, width: 32, height: 128, sprite: 'flag.png' };
+let flag = { x: 3200, y: 200, width: 32, height: 128 };
 let camera = { x: 0, y: 0 };
-
-// Load assets (placeholders)
-let images = {};
-function loadImage(src) {
-    const img = new Image();
-    img.src = src;
-    return img;
-}
-function preloadAssets() {
-    images.girl_idle = loadImage('sprites/girl_idle.png');
-    images.girl_walk = loadImage('sprites/girl_walk.png');
-    images.boy_idle = loadImage('sprites/boy_idle.png');
-    images.boy_walk = loadImage('sprites/boy_walk.png');
-    images.car_black = loadImage('sprites/car_black.png');
-    images.plane = loadImage('sprites/plane.png');
-    images.brick = loadImage('sprites/brick.png');
-    images.question_brick = loadImage('sprites/question_brick.png');
-    images.flag = loadImage('sprites/flag.png');
-    images.ground_tiles = loadImage('sprites/ground_tiles.png');
-    // Load photos
-    storyBlocks.forEach(block => {
-        images[`photo${block.id}`] = loadImage(block.photo);
-    });
-}
 
 // Initialize bricks
 function initBricks() {
@@ -87,6 +65,7 @@ function initBricks() {
 
 // Game loop
 function gameLoop() {
+    animationFrame++;
     update();
     render();
     requestAnimationFrame(gameLoop);
@@ -119,8 +98,6 @@ function update() {
         if (!brick.used && brick.type === 'question' && player.x + player.width > brick.x && player.x < brick.x + brick.width && player.y < brick.y) {
             brick.used = true;
             brick.type = 'normal';
-            // Play bump sound (optional)
-            // new Audio('audio/bump.wav').play();
             showRevealOverlay(brick.id);
         }
     });
@@ -128,13 +105,11 @@ function update() {
     // Check flag
     if (player.x >= flag.x) {
         currentState = STATES.END_FLAG;
-        // Play level end sound (optional)
-        // new Audio('audio/level_end.wav').play();
         setTimeout(() => { currentState = STATES.VALENTINE_SCREEN; }, 2000);
     }
 }
 
-// Render
+// Render (using Canvas drawing instead of images)
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -142,72 +117,115 @@ function render() {
     ctx.fillStyle = '#87CEEB';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Ground
+    // Ground (simple tiles)
+    ctx.fillStyle = '#8B4513'; // Brown
     for (let i = 0; i < canvas.width / TILE_SIZE; i++) {
-        ctx.drawImage(images.ground_tiles, i * TILE_SIZE - camera.x % TILE_SIZE, canvas.height - TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        ctx.fillRect(i * TILE_SIZE - camera.x % TILE_SIZE, canvas.height - TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
 
     // Bricks
     bricks.forEach(brick => {
-        const img = brick.type === 'question' ? images.question_brick : images.brick;
-        ctx.drawImage(img, brick.x - camera.x, brick.y - camera.y, brick.width, brick.height);
+        ctx.fillStyle = brick.type === 'question' ? '#FFD700' : '#A0522D'; // Gold for question, brown for normal
+        ctx.fillRect(brick.x - camera.x, brick.y - camera.y, brick.width, brick.height);
+        if (brick.type === 'question') {
+            ctx.fillStyle = '#000';
+            ctx.font = '16px Arial';
+            ctx.fillText('?', brick.x - camera.x + 12, brick.y - camera.y + 20);
+        }
     });
 
-    // Flag
-    ctx.drawImage(images.flag, flag.x - camera.x, flag.y - camera.y, flag.width, flag.height);
+    // Flag (pole and flag)
+    ctx.fillStyle = '#654321'; // Brown pole
+    ctx.fillRect(flag.x - camera.x, flag.y - camera.y, 4, flag.height);
+    ctx.fillStyle = '#FF0000'; // Red flag
+    ctx.fillRect(flag.x - camera.x + 4, flag.y - camera.y, flag.width - 4, 32);
 
-    // Player
+    // Player (simple animated rectangle with legs)
     if (currentState === STATES.CH1_PLAY || currentState === STATES.CH3_PLAY) {
-        ctx.drawImage(images[player.sprite], player.x - camera.x, player.y - camera.y, player.width, player.height);
+        drawCharacter(player.x - camera.x, player.y - camera.y, player.color, animationFrame);
     }
 
     // Player2
     if (player2.visible) {
-        ctx.drawImage(images[player2.sprite], player2.x - camera.x, player2.y - camera.y, player2.width, player2.height);
+        drawCharacter(player2.x - camera.x, player2.y - camera.y, player2.color, animationFrame);
     }
 
-    // Car
+    // Car (simple rectangle)
     if (car.visible) {
-        ctx.drawImage(images[car.sprite], car.x - camera.x, car.y - camera.y, car.width, car.height);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(car.x - camera.x, car.y - camera.y, car.width, car.height);
+        ctx.fillStyle = '#FFFF00'; // Yellow windows
+        ctx.fillRect(car.x - camera.x + 10, car.y - camera.y + 5, 20, 10);
     }
 
-    // Plane
+    // Plane (simple shape)
     if (plane.visible) {
-        ctx.drawImage(images[plane.sprite], plane.x - camera.x, plane.y - camera.y, plane.width, plane.height);
+        ctx.fillStyle = '#C0C0C0'; // Silver
+        ctx.fillRect(plane.x - camera.x, plane.y - camera.y, plane.width, plane.height);
+        ctx.fillStyle = '#0000FF'; // Blue tail
+        ctx.fillRect(plane.x - camera.x + plane.width - 20, plane.y - camera.y + 10, 20, 20);
     }
 }
 
-// Overlays
+// Helper function to draw animated character
+function drawCharacter(x, y, color, frame) {
+    // Body
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, 32, 32);
+    // Head
+    ctx.fillStyle = '#FFE4B5'; // Skin tone
+    ctx.fillRect(x + 8, y - 8, 16, 16);
+    // Eyes
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + 10, y - 6, 2, 2);
+    ctx.fillRect(x + 20, y - 6, 2, 2);
+    // Legs (animated)
+    ctx.fillStyle = '#000';
+    const legOffset = (frame % 20 < 10) ? 0 : 4; // Alternate legs
+    ctx.fillRect(x + 6, y + 32, 6, 8);
+    ctx.fillRect(x + 20 + legOffset, y + 32, 6, 8);
+}
+
+// Overlays (photos still use images or placeholder)
 function showRevealOverlay(id) {
     const block = storyBlocks.find(b => b.id === id);
     const photoImg = document.getElementById('revealPhoto');
     photoImg.src = block.photo;
-    photoImg.onerror = () => { photoImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjY2NjIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5QaG90byBQbGFjZWhvbGRlcjwvdGV4dD48L3N2Zz4='; };
+    photoImg.onerror = () => {
+        // Drawn placeholder
+        const canvasPlaceholder = document.createElement('canvas');
+        canvasPlaceholder.width = 300;
+        canvasPlaceholder.height = 300;
+        const ctxPlaceholder = canvasPlaceholder.getContext('2d');
+        ctxPlaceholder.fillStyle = '#CCC';
+        ctxPlaceholder.fillRect(0, 0, 300, 300);
+        ctxPlaceholder.fillStyle = '#666';
+        ctxPlaceholder.font = '20px Arial';
+        ctxPlaceholder.fillText('Photo Placeholder', 50, 150);
+        photoImg.src = canvasPlaceholder.toDataURL();
+    };
     document.getElementById('revealCaption').textContent = block.caption;
     document.getElementById('revealOverlay').classList.remove('hidden');
-    // Play reveal sound (optional)
-    // new Audio('audio/reveal.wav').play();
 }
 
 function hideRevealOverlay() {
     document.getElementById('revealOverlay').classList.add('hidden');
-    if (currentState === STATES.CH1_PLAY && storyBlocks[2].id === 3) { // After brick 3
+    if (currentState === STATES.CH1_PLAY && storyBlocks[2].id === 3) {
         currentState = STATES.CUTSCENE_JOIN;
         startCutsceneJoin();
-    } else if (currentState === STATES.CH2_PLAY && storyBlocks[6].id === 7) { // After brick 7
+    } else if (currentState === STATES.CH2_PLAY && storyBlocks[6].id === 7) {
         currentState = STATES.CUTSCENE_FLIGHT;
         startCutsceneFlight();
     }
 }
 
-// Cutscenes
+// Cutscenes (unchanged)
 function startCutsceneJoin() {
     document.getElementById('cutsceneText').textContent = "Then… you weren’t just in my story.\nYou became my home.";
     document.getElementById('cutsceneOverlay').classList.remove('hidden');
     setTimeout(() => {
         player2.x = player.x + 100;
         player2.visible = true;
-        // Simple hop animation
         player.y -= 20; player2.y -= 20;
         setTimeout(() => { player.y += 20; player2.y += 20; }, 500);
         setTimeout(() => {
@@ -225,14 +243,11 @@ function startCutsceneJoin() {
 function startCutsceneFlight() {
     document.getElementById('cutsceneText').textContent = "Then came the hardest part…\nI left for the U.S., and you stayed in India.";
     document.getElementById('cutsceneOverlay').classList.remove('hidden');
-    // Airport BG (optional: draw or overlay)
     setTimeout(() => {
         plane.x = canvas.width + 100;
         plane.y = 200;
         plane.visible = true;
-        plane.vx = -5; plane.vy = -2; // Takeoff
-        // Play takeoff sound (optional)
-        // new Audio('audio/takeoff.wav').play();
+        plane.vx = -5; plane.vy = -2;
         setTimeout(() => {
             plane.visible = false;
             document.getElementById('chapterTitle').classList.remove('hidden');
@@ -245,25 +260,21 @@ function startCutsceneFlight() {
     }, 2000);
 }
 
-// Add event listeners at the end of the file
+// Event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    preloadAssets();
     initBricks();
-    gameLoop(); // Start the game loop
+    gameLoop();
 
-    // Start overlay click
     document.getElementById('startOverlay').addEventListener('click', () => {
-        console.log('Game started'); // Debug log
+        console.log('Game started');
         currentState = STATES.CH1_PLAY;
         document.getElementById('startOverlay').classList.add('hidden');
     });
 
-    // Reveal overlay next button
     document.getElementById('nextButton').addEventListener('click', () => {
         hideRevealOverlay();
     });
 
-    // Cutscene skip button
     document.getElementById('skipButton').addEventListener('click', () => {
         document.getElementById('cutsceneOverlay').classList.add('hidden');
         if (currentState === STATES.CUTSCENE_JOIN) {
@@ -274,22 +285,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Valentine screen yes buttons
     document.querySelectorAll('.yesButton').forEach(button => {
         button.addEventListener('click', () => {
             document.getElementById('valentineScreen').classList.add('hidden');
             document.getElementById('endMessage').classList.remove('hidden');
-            // Optional: Add confetti or animation here
         });
     });
 
-    // Jump controls (click/tap or spacebar)
     canvas.addEventListener('click', () => {
         if ((currentState === STATES.CH1_PLAY || currentState === STATES.CH3_PLAY) && player.onGround) {
             player.vy = JUMP_FORCE;
             player.onGround = false;
-            // Play jump sound (optional)
-            // new Audio('audio/jump.wav').play();
         }
     });
     document.addEventListener('keydown', (e) => {
@@ -297,8 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             player.vy = JUMP_FORCE;
             player.onGround = false;
-            // Play jump sound (optional)
-            // new Audio('audio/jump.wav').play();
         }
     });
 });
