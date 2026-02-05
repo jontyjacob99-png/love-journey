@@ -237,4 +237,68 @@ function startCutsceneFlight() {
             plane.visible = false;
             document.getElementById('chapterTitle').classList.remove('hidden');
             document.getElementById('titleText').textContent = "Long Distance, Same Love";
-            setTimeout
+            setTimeout(() => {
+                document.getElementById('chapterTitle').classList.add('hidden');
+                currentState = STATES.CH3_PLAY;
+            }, 2000);
+        }, 8000);
+    }, 2000);
+}
+
+// Add event listeners at the end of the file
+document.addEventListener('DOMContentLoaded', () => {
+    preloadAssets();
+    initBricks();
+    gameLoop(); // Start the game loop
+
+    // Start overlay click
+    document.getElementById('startOverlay').addEventListener('click', () => {
+        console.log('Game started'); // Debug log
+        currentState = STATES.CH1_PLAY;
+        document.getElementById('startOverlay').classList.add('hidden');
+    });
+
+    // Reveal overlay next button
+    document.getElementById('nextButton').addEventListener('click', () => {
+        hideRevealOverlay();
+    });
+
+    // Cutscene skip button
+    document.getElementById('skipButton').addEventListener('click', () => {
+        document.getElementById('cutsceneOverlay').classList.add('hidden');
+        if (currentState === STATES.CUTSCENE_JOIN) {
+            currentState = STATES.CH2_PLAY;
+        } else if (currentState === STATES.CUTSCENE_FLIGHT) {
+            currentState = STATES.CH3_PLAY;
+            document.getElementById('chapterTitle').classList.add('hidden');
+        }
+    });
+
+    // Valentine screen yes buttons
+    document.querySelectorAll('.yesButton').forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('valentineScreen').classList.add('hidden');
+            document.getElementById('endMessage').classList.remove('hidden');
+            // Optional: Add confetti or animation here
+        });
+    });
+
+    // Jump controls (click/tap or spacebar)
+    canvas.addEventListener('click', () => {
+        if ((currentState === STATES.CH1_PLAY || currentState === STATES.CH3_PLAY) && player.onGround) {
+            player.vy = JUMP_FORCE;
+            player.onGround = false;
+            // Play jump sound (optional)
+            // new Audio('audio/jump.wav').play();
+        }
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && (currentState === STATES.CH1_PLAY || currentState === STATES.CH3_PLAY) && player.onGround) {
+            e.preventDefault();
+            player.vy = JUMP_FORCE;
+            player.onGround = false;
+            // Play jump sound (optional)
+            // new Audio('audio/jump.wav').play();
+        }
+    });
+});
